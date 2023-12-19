@@ -1,3 +1,6 @@
+/**
+ * Handles user sign-up.
+ */
 function signUp() {
     let login = document.getElementsByName('username')[0].value;
     let password = document.getElementsByName('pswd')[0].value;
@@ -6,7 +9,7 @@ function signUp() {
         user_login: login,
         user_password: password,
     };
-
+    // Make a POST request to add new user
     fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -20,10 +23,14 @@ function signUp() {
     })
 }
 
+/**
+ * Handles user sign-in.
+ */
 function signIn() {
     let login = document.getElementsByName('username')[1].value;
     let password = document.getElementsByName('pswd')[1].value;
 
+    // Make a GET request to find entered user data
     fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user', {
         method: 'GET',
         headers: { 'content-type': 'application/json' },

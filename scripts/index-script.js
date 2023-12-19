@@ -1,5 +1,12 @@
+// Retrieve the user ID from local storage
 var userId = localStorage.getItem('userId');
 
+/**
+ * Adds a new task to the user's tasks list.
+ * @param {string} name - The name of the task.
+ * @param {string} description - The description of the task.
+ * @param {string} deadline - The deadline of the task.
+ */
 function addTask(name, description, deadline) {
     const newTask = {
         task_name: name,
@@ -7,6 +14,7 @@ function addTask(name, description, deadline) {
         task_deadline: deadline
     };
 
+    // Make a POST request to add the new task
     fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/'+ userId +'/task', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -20,9 +28,14 @@ function addTask(name, description, deadline) {
     .catch(error => {
         console.log(error);
     });
+    // Refresh the displayed tasks
     showMyTasks();
 }
 
+/**
+ * Deletes a task with the specified ID.
+ * @param {string} id - The ID of the task to be deleted.
+ */
 function deleteTask(id) {
     fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/'+ userId +'/task/' + id, {
     method: 'DELETE',
@@ -35,37 +48,44 @@ function deleteTask(id) {
     })
 }
 
-var myObj= {
-    textSelect: function() {
-        document.getElementById('description').select();
-    },
-
+// Object to handle various task-related actions
+var myObj = {
+    /**
+     * Hides the task form.
+     */
     hide: function() {
         document.getElementById("form").style.display = "none";
         document.getElementById("show").style.display = "inline-block";
 
     },
 
+    /**
+     * Shows the task form and sets the default date.
+     */
     show: function() {
         document.getElementById("form").style.display = "block";
         document.getElementById("show").style.display = "none";
         document.getElementById('myDate').valueAsDate = new Date();
     },
 
+    /**
+     * Edits a task.
+     */
     edit: function() {
-        console.log('edit button pressed');
         var buttonId = this.getAttribute('id');
-        console.log(buttonId);
+        // Enable editing for task name and description
         document.getElementById('editTaskName_' + buttonId).removeAttribute('readonly');
         document.getElementById('editTaskDescription_' + buttonId).removeAttribute('readonly');
         document.getElementById(buttonId).innerText = 'Save';
         document.getElementById(buttonId).addEventListener('click', myObj.saveChanges);
     },
 
+    /**
+     * Saves changes to an edited task.
+     */
     saveChanges: async function() {
-        console.log('save button pressed');
         var buttonId = this.getAttribute('id');
-        console.log(buttonId);
+        // Saving edited name and description
         document.getElementById('editTaskName_' + buttonId).setAttribute('readonly', true);
         document.getElementById('editTaskDescription_' + buttonId).setAttribute('readonly', true);
         document.getElementById(buttonId).innerText = 'Edit';
@@ -76,6 +96,7 @@ var myObj= {
         var myTasks = await returnToDo();
         var taskToUpdate = myTasks[index];
         document.getElementById('myTasks').innerHTML = '';
+        // Make a GET request to find task we need
         fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/' + userId + '/task', {
             method: 'GET',
             headers: { 'content-type': 'application/json' },
@@ -91,6 +112,7 @@ var myObj= {
             if (task) {
                 console.log('task to change found');
                 var updateTaskId = task.id;
+                // Make a PUT request to change the task
                 fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/' + userId + '/task/' + updateTaskId, {
                     method: 'PUT',
                     headers: {'content-type':'application/json'},
@@ -113,6 +135,9 @@ var myObj= {
         });
     },
 
+    /**
+     * Removes a task.
+     */
     removeTask: async function () {
         var index = this.getAttribute('id');
         var myTasks = await returnToDo();
@@ -120,6 +145,7 @@ var myObj= {
         myTasks.splice(index, 1);
         localStorage.setItem('myData', JSON.stringify(myTasks));
         document.getElementById('myTasks').innerHTML = '';
+        // Make a GET request to find task we need
         fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/' + userId + '/task', {
             method: 'GET',
             headers: { 'content-type': 'application/json' },
@@ -134,6 +160,7 @@ var myObj= {
             const task = tasks.find(t => t.task_name === taskToRemove.task_name && t.task_description == taskToRemove.task_description);
             if (task) {
                 var deletionTaskId = task.id;
+                // Make a DELETE request to delete the task
                 fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/' + userId + '/task/' + deletionTaskId, {
                 method: 'DELETE',
                 }).then(res => {
@@ -153,6 +180,10 @@ var myObj= {
     }   
 };
 
+/**
+ * Retrieves the user's tasks from the API.
+ * @returns {Array} - An array of tasks.
+ */
 async function returnToDo() {
     var myTasks = [];
 
@@ -174,6 +205,9 @@ async function returnToDo() {
     return myTasks;
 }
 
+/**
+ * Constructor function for creating a Task object.
+ */
 function Task() {
     this.name = document.getElementById('taskName').value;
     this.date = document.getElementById('myDate').value;
@@ -189,8 +223,11 @@ function newTask(x, y, o, index) {
             '<div class="btn green" id="' + index + '">Edit</div>' +
             '<div class="btn red" id="' + index + '">Delete</div>' +
         '</div>'
-}   
+}  
 
+/**
+ * Displays the user's tasks on the page.
+ */
 async function showMyTasks(){
     var myTasks = await returnToDo();
     document.getElementById('myTasks').innerHTML = '';
@@ -212,6 +249,9 @@ async function showMyTasks(){
     }
 }
 
+/**
+ * Adds a new task to the user's tasks.
+ */
 async function submitInfo(){
     var myTasks = await returnToDo();
     var task = new Task();
@@ -222,9 +262,13 @@ async function submitInfo(){
     myObj.hide();
 }
 
+/**
+ * Logs out the user by clearing the user ID in local storage.
+ */
 function logOut() {
     localStorage.setItem('userId', 'undefined');
     window.location.href = 'login.html';
 }
 
+// Initial display of tasks
 showMyTasks();
