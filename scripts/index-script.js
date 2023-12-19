@@ -36,7 +36,7 @@ function deleteTask(id) {
 }
 
 var myObj= {
-    textSelect: function(){
+    textSelect: function() {
         document.getElementById('description').select();
     },
 
@@ -46,10 +46,71 @@ var myObj= {
 
     },
 
-    show:function(){
+    show: function() {
         document.getElementById("form").style.display = "block";
         document.getElementById("show").style.display = "none";
         document.getElementById('myDate').valueAsDate = new Date();
+    },
+
+    edit: function() {
+        console.log('edit button pressed');
+        var buttonId = this.getAttribute('id');
+        console.log(buttonId);
+        document.getElementById('editTaskName_' + buttonId).removeAttribute('readonly');
+        document.getElementById('editTaskDescription_' + buttonId).removeAttribute('readonly');
+        document.getElementById(buttonId).innerText = 'Save';
+        document.getElementById(buttonId).addEventListener('click', myObj.saveChanges);
+    },
+
+    saveChanges: async function() {
+        console.log('save button pressed');
+        var buttonId = this.getAttribute('id');
+        console.log(buttonId);
+        document.getElementById('editTaskName_' + buttonId).setAttribute('readonly', true);
+        document.getElementById('editTaskDescription_' + buttonId).setAttribute('readonly', true);
+        document.getElementById(buttonId).innerText = 'Edit';
+        document.getElementById(buttonId).removeEventListener('click', myObj.saveChanges);
+        var newTaskName = document.getElementById('editTaskName_' + buttonId).value;
+        var newTaskDescription = document.getElementById('editTaskDescription_' + buttonId).value;
+        var index = this.getAttribute('id');
+        var myTasks = await returnToDo();
+        var taskToUpdate = myTasks[index];
+        document.getElementById('myTasks').innerHTML = '';
+        fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/' + userId + '/task', {
+            method: 'GET',
+            headers: { 'content-type': 'application/json' },
+        })
+        .then(res => {
+            if (res.ok) {
+                return res.json();
+            } else {
+                throw new Error('Failed to fetch user data');
+            }
+        }).then(tasks => {
+            const task = tasks.find(t => t.task_name === taskToUpdate.task_name && t.task_description == taskToUpdate.task_description);
+            if (task) {
+                console.log('task to change found');
+                var updateTaskId = task.id;
+                fetch('https://6566cae464fcff8d730f1095.mockapi.io/api/v1/user/' + userId + '/task/' + updateTaskId, {
+                    method: 'PUT',
+                    headers: {'content-type':'application/json'},
+                    body: JSON.stringify({task_name: newTaskName, task_description: newTaskDescription})
+                }).then(res => {
+                if (res.ok) {
+                    return res.json();
+                }
+                }).then(task => {
+                    showMyTasks();
+                })
+                .catch(error => {
+                    console.log(error);
+                })
+
+            }
+        })
+        .catch(error => {
+            console.log(error);
+        });
     },
 
     removeTask: async function () {
@@ -121,11 +182,12 @@ function Task() {
 
 function newTask(x, y, o, index) {
     document.getElementById('myTasks').innerHTML +=
-        '<div class="col l3 m4 s12 animated zoomIn"> <h1>' + y + '</h1>' +
-        '<p>' + x + '</p>' +
-        '<p>Due: ' + o + '</p>' +
-        '<div class="btn red" id="' + index + '">Edit</div>' +
-        '<div class="btn red" id="' + index + '">Delete</div>' +
+            '<div class="col l3 m4 s12 animated zoomIn" style="margin-top: 20px;">' +
+            '<strong><textarea style="font-size: 30px;" id="editTaskName_' + index + '" readonly>' + x + '</textarea><strong><br>' +
+            '<textarea id="editTaskDescription_' + index + '"readonly>' + y + '</textarea><br>' +
+            '<h3>Due: ' + o + ' </h3><br>' +
+            '<div class="btn green" id="' + index + '">Edit</div>' +
+            '<div class="btn red" id="' + index + '">Delete</div>' +
         '</div>'
 }   
 
@@ -140,9 +202,13 @@ async function showMyTasks(){
             i
         );
     }
-    var button = document.getElementsByClassName('red');
-    for (var j = 0; j < button.length; j++) {
-        button[j].addEventListener('click', myObj.removeTask);
+    var deleteButton = document.getElementsByClassName('red');
+    for (var j = 0; j < deleteButton.length; j++) {
+        deleteButton[j].addEventListener('click', myObj.removeTask);
+    }
+    var editButton = document.getElementsByClassName('green');
+    for (var k = 0; k < editButton.length; k++) {
+        editButton[k].addEventListener('click', myObj.edit);
     }
 }
 
@@ -150,10 +216,15 @@ async function submitInfo(){
     var myTasks = await returnToDo();
     var task = new Task();
     myTasks.push(task);
-    localStorage.setItem('myData',JSON.stringify(myTasks));
+    localStorage.setItem('myData', JSON.stringify(myTasks));
     addTask(task.name, task.describe, task.date);
     showMyTasks();
     myObj.hide();
+}
+
+function logOut() {
+    localStorage.setItem('userId', 'undefined');
+    window.location.href = 'login.html';
 }
 
 showMyTasks();

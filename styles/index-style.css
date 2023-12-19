@@ -228,6 +228,15 @@ textarea {
   cursor: pointer;
 }
 
+textarea {
+  background-color: transparent; /* Прозрачный фон */
+  border: none; /* Убираем границы */
+  padding: 10px; /* Задаем отступы вокруг текста */
+  line-height: 1.5; /* Задаем интервал между строками текста */
+  resize: none; /* Запрещаем изменение размеров textarea */
+  outline: none; /* Убираем контур фокуса */
+}
+
 .btn:hover {
   background-color: #81d4fa;
 }
