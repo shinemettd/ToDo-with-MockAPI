@@ -308,7 +308,7 @@ function Task() {
 }
 
 function newTask(x, y, o, status, index) {
-    var otherStatus;
+    var otherStatus = 'Failed';
     if (status === 'In progress') {
         otherStatus = 'Completed';
     } else if (status === 'Completed') {
